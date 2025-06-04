@@ -24,6 +24,7 @@ mmcv.ops.nms.batched_nms = batched_nms_cpu
 
 
 
+
 # # # Deaktiviere MPS komplett
 # if torch.backends.mps.is_available():
 #     print("⚠️  MPS ist verfügbar, wird aber deaktiviert für Stabilität.")
@@ -38,6 +39,9 @@ from mmengine.runner import Runner
 
 from mmyolo.registry import RUNNERS
 from mmyolo.utils import is_metainfo_lower
+
+from mmdet.utils import register_all_modules
+register_all_modules()
 
 
 
