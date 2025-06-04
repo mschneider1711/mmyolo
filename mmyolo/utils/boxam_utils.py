@@ -251,7 +251,6 @@ class BoxAMDetectorVisualizer:
             self.cam = AblationCAM(
                 model,
                 target_layers,
-                use_cuda=True if 'cuda' in model.device else False,
                 reshape_transform=reshape_transform,
                 batch_size=batch_size,
                 ablation_layer=extra_params['ablation_layer'],
@@ -260,7 +259,6 @@ class BoxAMDetectorVisualizer:
             self.cam = method_class(
                 model,
                 target_layers,
-                use_cuda=True if 'cuda' in model.device else False,
                 reshape_transform=reshape_transform,
             )
             if self.is_need_grad:

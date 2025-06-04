@@ -3,6 +3,16 @@ import argparse
 import os
 from typing import Sequence
 
+import torch  # <--- hinzufügen
+
+# Deaktiviere MPS komplett
+if torch.backends.mps.is_available():
+    print("⚠️  MPS ist verfügbar, wird aber deaktiviert für Stabilität.")
+    os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '0'
+    torch.backends.mps.is_available = lambda: False
+    torch.backends.mps.is_built = lambda: False
+
+
 import mmcv
 from mmdet.apis import inference_detector, init_detector
 from mmengine import Config, DictAction

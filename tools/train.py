@@ -4,6 +4,33 @@ import logging
 import os
 import os.path as osp
 
+
+import torch  # <--- hinzufügen
+torch.set_float32_matmul_precision('high')
+
+from mmcv.ops import batched_nms as orig_batched_nms
+import torch
+
+# Globaler Patch: batched_nms immer auf CPU ausführen
+def batched_nms_cpu(bboxes, scores, idxs, nms_cfg, *args, **kwargs):
+    bboxes_cpu = bboxes.cpu()
+    scores_cpu = scores.cpu()
+    idxs_cpu = idxs.cpu()
+    dets, keep = orig_batched_nms(bboxes_cpu, scores_cpu, idxs_cpu, nms_cfg, *args, **kwargs)
+    return dets.to(bboxes.device), keep.to(bboxes.device)
+
+import mmcv.ops.nms
+mmcv.ops.nms.batched_nms = batched_nms_cpu
+
+
+
+# # # Deaktiviere MPS komplett
+# if torch.backends.mps.is_available():
+#     print("⚠️  MPS ist verfügbar, wird aber deaktiviert für Stabilität.")
+#     os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '0'
+#     torch.backends.mps.is_available = lambda: False
+#     torch.backends.mps.is_built = lambda: False
+
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 from mmengine.config import Config, DictAction
 from mmengine.logging import print_log
@@ -11,6 +38,8 @@ from mmengine.runner import Runner
 
 from mmyolo.registry import RUNNERS
 from mmyolo.utils import is_metainfo_lower
+
+
 
 
 def parse_args():

@@ -3,6 +3,15 @@ import argparse
 import os
 import os.path as osp
 
+import torch  # <--- hinzufügen
+
+# Deaktiviere MPS komplett
+if torch.backends.mps.is_available():
+    print("⚠️  MPS ist verfügbar, wird aber deaktiviert für Stabilität.")
+    os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '0'
+    torch.backends.mps.is_available = lambda: False
+    torch.backends.mps.is_built = lambda: False
+
 from mmdet.engine.hooks.utils import trigger_visualization_hook
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 from mmengine.config import Config, ConfigDict, DictAction

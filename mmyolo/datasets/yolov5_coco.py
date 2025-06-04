@@ -45,14 +45,30 @@ class BatchShapePolicyDataset(BaseDetDataset):
         self._fully_initialized = True
 
     def prepare_data(self, idx: int) -> Any:
-        """Pass the dataset to the pipeline during training to support mixed
-        data augmentation, such as Mosaic and MixUp."""
         if self.test_mode is False:
             data_info = self.get_data_info(idx)
+
+            if 'img_path' not in data_info:
+                from os import path as osp
+                file_name = data_info.get('file_name') or data_info.get('img') or data_info.get('img_id')
+                if file_name:
+                    prefix = self.data_prefix['img'] if isinstance(self.data_prefix, dict) else self.data_prefix
+                    data_info['img_path'] = osp.join(prefix, file_name)
+
             data_info['dataset'] = self
+
+            # 💥 Albumentations erwartet 'img_path' in 'results' -> also hier direkt in das dict injizieren
+            if 'img_path' not in data_info:
+                data_info = dict(img_path=data_info['img_path'], **data_info)
+
             return self.pipeline(data_info)
+
         else:
             return super().prepare_data(idx)
+
+
+
+
 
 
 @DATASETS.register_module()

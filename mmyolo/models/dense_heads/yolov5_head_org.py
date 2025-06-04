@@ -3,8 +3,6 @@ import copy
 import math
 from typing import List, Optional, Sequence, Tuple, Union
 
-
-import numpy as np
 import torch
 import torch.nn as nn
 from mmdet.models.dense_heads.base_dense_head import BaseDenseHead
@@ -434,13 +432,17 @@ class YOLOv5Head(BaseDenseHead):
                 # do not need max_per_img
                 cfg.max_per_img = len(results)
 
-            #scores, labels, keep_idxs, _ = filter_scores_and_topk(scores, score_thr, nms_pre)
+            # DEBUG-Ausgabe (optional)
+            print(f"[DEBUG] keep_idxs type: {type(keep_idxs)}, value: {keep_idxs}")
 
-            results = InstanceData(
-                scores=scores,
-                labels=labels,
-                bboxes=bboxes[keep_idxs]
-            )
+            # Konvertierung: Falls boolean-Array, zu int-Indices umwandeln
+            if isinstance(keep_idxs, (list, np.ndarray)) and isinstance(keep_idxs[0], (bool, np.bool_)):
+                keep_idxs = np.where(keep_idxs)[0]
+            elif isinstance(keep_idxs, torch.Tensor) and keep_idxs.dtype == torch.bool:
+                keep_idxs = torch.where(keep_idxs)[0]
+
+            results = results[keep_idxs]
+
 
             results = self._bbox_post_process(
                 results=results,

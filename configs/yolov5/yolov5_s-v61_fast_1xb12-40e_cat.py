@@ -12,8 +12,8 @@ anchors = [
 ]
 
 max_epochs = 40
-train_batch_size_per_gpu = 12
-train_num_workers = 4
+train_batch_size_per_gpu = 16  # ggf. auf 4 oder 8 senken bei CPU
+train_num_workers = 0  # wichtig für macOS ohne multiprocessing
 
 load_from = 'https://download.openmmlab.com/mmyolo/v0/yolov5/yolov5_s-v61_syncbn_fast_8xb16-300e_coco/yolov5_s-v61_syncbn_fast_8xb16-300e_coco_20220918_084700-86e02187.pth'  # noqa
 
@@ -26,13 +26,19 @@ model = dict(
 train_dataloader = dict(
     batch_size=train_batch_size_per_gpu,
     num_workers=train_num_workers,
+    persistent_workers=False,  
     dataset=dict(
+        type='YOLOv5CocoDataset',  # oder dein Dataset
         data_root=data_root,
         metainfo=metainfo,
         ann_file='annotations/trainval.json',
-        data_prefix=dict(img='images/')))
+        data_prefix=dict(img='images/'),
+    )
+)
 
 val_dataloader = dict(
+    num_workers=train_num_workers,
+    persistent_workers=False,
     dataset=dict(
         metainfo=metainfo,
         data_root=data_root,
@@ -48,9 +54,15 @@ test_evaluator = val_evaluator
 
 default_hooks = dict(
     checkpoint=dict(interval=10, max_keep_ckpts=2, save_best='auto'),
-    # The warmup_mim_iter parameter is critical.
-    # The default value is 1000 which is not suitable for cat datasets.
     param_scheduler=dict(max_epochs=max_epochs, warmup_mim_iter=10),
     logger=dict(type='LoggerHook', interval=5))
+
 train_cfg = dict(max_epochs=max_epochs, val_interval=10)
-# visualizer = dict(vis_backends = [dict(type='LocalVisBackend'), dict(type='WandbVisBackend')]) # noqa
+
+# Für CPU-Training wichtig:
+env_cfg = dict(
+    cudnn_benchmark=False,
+    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0),
+    dist_cfg=dict(backend='nccl'),
+    device='mps'  # explizit CPU
+)

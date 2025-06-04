@@ -19,10 +19,10 @@ mmdet_maximum_version = '4.0.0'
 mmdet_version = digit_version(mmdet.__version__)
 
 
-assert (mmcv_version >= digit_version(mmcv_minimum_version)
-        and mmcv_version < digit_version(mmcv_maximum_version)), \
-    f'MMCV=={mmcv.__version__} is used but incompatible. ' \
-    f'Please install mmcv>={mmcv_minimum_version}, <{mmcv_maximum_version}.'
+if not (mmcv_version >= digit_version(mmcv_minimum_version)
+        and mmcv_version < digit_version(mmcv_maximum_version)):
+    print(f"[⚠️ WARNUNG] Du verwendest MMCV {mmcv_version}, was offiziell nicht unterstützt ist. Mögliche Instabilität.")
+
 
 assert (mmengine_version >= digit_version(mmengine_minimum_version)
         and mmengine_version < digit_version(mmengine_maximum_version)), \
